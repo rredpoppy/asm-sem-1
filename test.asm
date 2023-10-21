@@ -1,18 +1,18 @@
 bits 32
+global start
 
-section .data
+extern exit
+import exit msvcrt.dll
+
+segment data use32 class=data
     a db 0x3
     b dw 0xFDED ; -531 in decimal
     c dd 0x23E76
     d dq 0x11764F
-
-section .text
-global _start
-
-extern _exit
-import _exit, msvcrt.dll
-
-_start:
+    ; (b + c + d) - (a + d)
+    
+segment code use32 class=code
+start:
 
     push ebp                ; Save the base pointer
     mov ebp, esp            ; Set the base pointer
@@ -39,9 +39,11 @@ _start:
     ; Subtract (a + d) from (b + c + d)
     sub eax, ebx            ; Subtract lower 32 bits
     sbb edx, ecx            ; Subtract upper 32 bits with borrow
+    
+    ; AND the sign extensions since we worked on different dwords
 
     ; Exit with the result in EAX (lower 32 bits)
     push dword 0            ; Exit code
-    call [_exit]
+    call [exit]
 
     pop ebp                 ; Restore the base pointer
